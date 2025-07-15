@@ -29,6 +29,7 @@ dependencies = [
     "snowballstemmer~=2.2",
     "pydantic>=2.10",
     "pyOpenSSL>=24.3.0",
+    "psycopg2-binary>=2.9.0",
     "psutil>=6.1.1",
     "nltk>=3.9.1",
     "playwright",

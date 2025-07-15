@@ -125,12 +125,40 @@ def run_migration():
     """Initialize database during installation"""
     try:
         logger.info("Starting database initialization...", tag="INIT")
+        
+        # Initialize SQLite database (existing functionality)
         from crawl4ai.async_database import async_db_manager
-
         asyncio.run(async_db_manager.initialize())
-        logger.success(
-            "Database initialization completed successfully.", tag="COMPLETE"
-        )
+        logger.success("SQLite database initialization completed successfully.", tag="COMPLETE")
+        
+        # Initialize PostgreSQL database if configured
+        try:
+            from crawl4ai.postgres_config import PostgreSQLConfig
+            from crawl4ai.postgres_database import get_postgres_db_manager
+            
+            # Check if PostgreSQL is configured
+            pg_config = None
+            try:
+                pg_config = PostgreSQLConfig.for_supabase()
+                if not pg_config.validate():
+                    pg_config = PostgreSQLConfig.from_env()
+            except:
+                pg_config = PostgreSQLConfig.from_env()
+            
+            if pg_config and pg_config.validate():
+                logger.info("PostgreSQL configuration found, initializing...", tag="INIT")
+                pg_manager = get_postgres_db_manager(pg_config)
+                asyncio.run(pg_manager.initialize())
+                logger.success("PostgreSQL database initialization completed successfully.", tag="COMPLETE")
+            else:
+                logger.info("No valid PostgreSQL configuration found, skipping PostgreSQL initialization", tag="INIT")
+                
+        except ImportError:
+            logger.info("PostgreSQL modules not available, skipping PostgreSQL initialization", tag="INIT")
+        except Exception as e:
+            logger.warning(f"PostgreSQL initialization failed: {e}")
+            logger.warning("PostgreSQL database will be initialized on first use if configured")
+        
     except ImportError:
         logger.warning("Database module not found. Will initialize on first use.")
     except Exception as e:

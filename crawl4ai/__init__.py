@@ -93,6 +93,24 @@ from .utils import (
     setup_colab_environment
 )
 
+# PostgreSQL Support (optional)
+try:
+    from .postgres_config import PostgreSQLConfig, PostgreSQLConnectionManager
+    from .postgres_database import PostgreSQLDatabaseManager, get_postgres_db_manager
+    from .postgres_migrations import PostgreSQLMigrationManager, run_postgres_migrations, get_postgres_migration_status
+    
+    POSTGRES_AVAILABLE = True
+except ImportError:
+    # PostgreSQL dependencies not available
+    PostgreSQLConfig = None
+    PostgreSQLConnectionManager = None
+    PostgreSQLDatabaseManager = None
+    PostgreSQLMigrationManager = None
+    get_postgres_db_manager = None
+    run_postgres_migrations = None
+    get_postgres_migration_status = None
+    POSTGRES_AVAILABLE = False
+
 __all__ = [
     "AsyncLoggerBase",
     "AsyncLogger",
@@ -174,6 +192,21 @@ __all__ = [
     "ValidationResult",
     "ErrorDetail",
 ]
+
+# Add PostgreSQL exports if available
+if POSTGRES_AVAILABLE:
+    __all__.extend([
+        "PostgreSQLConfig",
+        "PostgreSQLConnectionManager",
+        "PostgreSQLDatabaseManager",
+        "PostgreSQLMigrationManager",
+        "get_postgres_db_manager",
+        "run_postgres_migrations",
+        "get_postgres_migration_status",
+        "POSTGRES_AVAILABLE",
+    ])
+else:
+    __all__.append("POSTGRES_AVAILABLE")
 
 
 # def is_sync_version_installed():
